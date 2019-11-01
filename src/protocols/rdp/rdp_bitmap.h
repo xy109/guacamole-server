@@ -17,7 +17,6 @@
  * under the License.
  */
 
-
 #ifndef _GUAC_RDP_RDP_BITMAP_H
 #define _GUAC_RDP_RDP_BITMAP_H
 
@@ -36,22 +35,23 @@
 /**
  * Guacamole-specific rdpBitmap data.
  */
-typedef struct guac_rdp_bitmap {
+typedef struct guac_rdp_bitmap
+{
 
-    /**
+   /**
      * FreeRDP bitmap data - MUST GO FIRST.
      */
-    rdpBitmap bitmap;
+   rdpBitmap bitmap;
 
-    /**
+   /**
      * Layer containing cached image data.
      */
-    guac_common_display_layer* layer;
+   guac_common_display_layer *layer;
 
-    /**
+   /**
      * The number of times a bitmap has been used.
      */
-    int used;
+   int used;
 
 } guac_rdp_bitmap;
 
@@ -67,7 +67,7 @@ typedef struct guac_rdp_bitmap {
  * @param bitmap
  *     The bitmap to cache.
  */
-void guac_rdp_cache_bitmap(rdpContext* context, rdpBitmap* bitmap);
+void guac_rdp_cache_bitmap(rdpContext *context, rdpBitmap *bitmap);
 
 /**
  * Initializes the given newly-created rdpBitmap.
@@ -78,7 +78,7 @@ void guac_rdp_cache_bitmap(rdpContext* context, rdpBitmap* bitmap);
  * @param bitmap
  *     The bitmap to initialize.
  */
-void guac_rdp_bitmap_new(rdpContext* context, rdpBitmap* bitmap);
+BOOL guac_rdp_bitmap_new(rdpContext *context, rdpBitmap *bitmap);
 
 /**
  * Paints the given rdpBitmap on the primary display surface. Note that this
@@ -93,7 +93,7 @@ void guac_rdp_bitmap_new(rdpContext* context, rdpBitmap* bitmap);
  *     the paint operation to perform, including the destination X/Y
  *     coordinates.
  */
-void guac_rdp_bitmap_paint(rdpContext* context, rdpBitmap* bitmap);
+BOOL guac_rdp_bitmap_paint(rdpContext *context, rdpBitmap *bitmap);
 
 /**
  * Frees any Guacamole-specific data associated with the given rdpBitmap.
@@ -104,7 +104,7 @@ void guac_rdp_bitmap_paint(rdpContext* context, rdpBitmap* bitmap);
  * @param bitmap
  *     The bitmap whose Guacamole-specific data is to be freed.
  */
-void guac_rdp_bitmap_free(rdpContext* context, rdpBitmap* bitmap);
+void guac_rdp_bitmap_free(rdpContext *context, rdpBitmap *bitmap);
 
 /**
  * Sets the given rdpBitmap as the drawing surface for future operations or,
@@ -123,8 +123,8 @@ void guac_rdp_bitmap_free(rdpContext* context, rdpBitmap* bitmap);
  *     surface should be reset to the primary drawing surface of the remote
  *     display, FALSE otherwise.
  */
-void guac_rdp_bitmap_setsurface(rdpContext* context, rdpBitmap* bitmap,
-        BOOL primary);
+BOOL guac_rdp_bitmap_setsurface(rdpContext *context, rdpBitmap *bitmap,
+                                BOOL primary);
 
 #ifdef LEGACY_RDPBITMAP
 /**
@@ -157,9 +157,15 @@ void guac_rdp_bitmap_setsurface(rdpContext* context, rdpBitmap* bitmap,
  * @param compressed
  *     TRUE if the image data is compressed, FALSE otherwise.
  */
-void guac_rdp_bitmap_decompress(rdpContext* context, rdpBitmap* bitmap,
-        UINT8* data, int width, int height, int bpp, int length,
-        BOOL compressed);
+BOOL guac_rdp_bitmap_decompress(rdpContext *context, rdpBitmap *bitmap,
+                                UINT8 *data, int width, int height, int bpp, int length,
+                                BOOL compressed);
+#elif defined(FREERDP_2)
+BOOL guac_rdp_bitmap_decompress(rdpContext *context, rdpBitmap *bitmap,
+                                const BYTE *data, UINT32 width, UINT32 height,
+                                UINT32 bpp, UINT32 length, BOOL compressed,
+                                UINT32 codec_id);
+BOOL guac_rdp_convert_bitmap(rdpContext *context, rdpBitmap *bitmap);
 #else
 /**
  * Decompresses or copies the given image data, storing the result within the
@@ -195,9 +201,8 @@ void guac_rdp_bitmap_decompress(rdpContext* context, rdpBitmap* bitmap,
  *     The ID of the codec used to compress the image data. This parameter is
  *     currently ignored.
  */
-void guac_rdp_bitmap_decompress(rdpContext* context, rdpBitmap* bitmap,
-        UINT8* data, int width, int height, int bpp, int length,
-        BOOL compressed, int codec_id);
+BOOL guac_rdp_bitmap_decompress(rdpContext *context, rdpBitmap *bitmap,
+                                const UINT8 *data, int width, int height, int bpp, int length,
+                                BOOL compressed, int codec_id);
 #endif
-
 #endif

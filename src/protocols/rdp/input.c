@@ -56,8 +56,13 @@ int guac_rdp_user_mouse_handler(guac_user* user, int x, int y, int mask) {
 
     /* If button mask unchanged, just send move event */
     if (mask == rdp_client->mouse_button_mask)
-        rdp_inst->input->MouseEvent(rdp_inst->input, PTR_FLAGS_MOVE, x, y);
-
+    {
+        #ifdef FREERDP_2
+            freerdp_input_send_mouse_event(rdp_inst->input, PTR_FLAGS_MOVE, (UINT16)x, (UINT16)y);
+        #else
+            rdp_inst->input->MouseEvent(rdp_inst->input, PTR_FLAGS_MOVE, x, y);
+        #endif
+    }
     /* Otherwise, send events describing button change */
     else {
 

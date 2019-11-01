@@ -23,8 +23,9 @@
 #include "rdp_fs.h"
 #include "rdp_status.h"
 #include "unicode.h"
-
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
 #include <guacamole/unicode.h>
 
 #ifdef ENABLE_WINPR
@@ -76,9 +77,9 @@ void guac_rdpdr_fs_process_query_directory_info(guac_rdpdr_device* device,
 
     Stream_Write(output_stream, utf16_entry_name, utf16_length); /* FileName */
     Stream_Write(output_stream, "\0\0", 2);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_query_full_directory_info(guac_rdpdr_device* device,
@@ -123,9 +124,9 @@ void guac_rdpdr_fs_process_query_full_directory_info(guac_rdpdr_device* device,
 
     Stream_Write(output_stream, utf16_entry_name, utf16_length); /* FileName */
     Stream_Write(output_stream, "\0\0", 2);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_query_both_directory_info(guac_rdpdr_device* device,
@@ -174,9 +175,9 @@ void guac_rdpdr_fs_process_query_both_directory_info(guac_rdpdr_device* device,
     Stream_Zero(output_stream, 24); /* FileName */
     Stream_Write(output_stream, utf16_entry_name, utf16_length); /* FileName */
     Stream_Write(output_stream, "\0\0", 2);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_query_names_info(guac_rdpdr_device* device,
@@ -212,8 +213,8 @@ void guac_rdpdr_fs_process_query_names_info(guac_rdpdr_device* device,
     Stream_Write_UINT32(output_stream, utf16_length+2); /* FileNameLength*/
     Stream_Write(output_stream, utf16_entry_name, utf16_length); /* FileName */
     Stream_Write(output_stream, "\0\0", 2);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 

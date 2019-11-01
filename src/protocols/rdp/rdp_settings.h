@@ -469,7 +469,10 @@ typedef struct guac_rdp_settings {
      * sensitive information, such as passwords, credit card numbers, etc.
      */
     int recording_include_keys;
-
+    /****
+     * 
+     */
+    BOOL   restricted_admin_mode_required;
     /**
      * The method to apply when the user's display changes size.
      */
@@ -526,6 +529,8 @@ typedef struct guac_rdp_settings {
 #endif
 
 } guac_rdp_settings;
+
+
 
 /**
  * Parses all given args, storing them in a newly-allocated settings object. If

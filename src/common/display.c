@@ -135,8 +135,7 @@ guac_common_display* guac_common_display_alloc(guac_client* client,
     /* Associate display with given client */
     display->client = client;
 
-    display->default_surface = guac_common_surface_alloc(client,
-            client->socket, GUAC_DEFAULT_LAYER, width, height);
+    display->default_surface = guac_common_surface_alloc(client, client->socket, GUAC_DEFAULT_LAYER, width, height);
 
     /* No initial layers or buffers */
     display->layers = NULL;
@@ -226,8 +225,7 @@ static guac_common_display_layer* guac_common_display_add_layer(
 
     guac_common_display_layer* old_head = *head;
 
-    guac_common_display_layer* display_layer =
-        malloc(sizeof(guac_common_display_layer));
+    guac_common_display_layer* display_layer = malloc(sizeof(guac_common_display_layer));
 
     /* Init layer/surface pair */
     display_layer->layer = layer;
@@ -258,8 +256,7 @@ static guac_common_display_layer* guac_common_display_add_layer(
  * @param display_layer
  *     The display layer to remove from the given list.
  */
-static void guac_common_display_remove_layer(guac_common_display_layer** head,
-        guac_common_display_layer* display_layer) {
+static void guac_common_display_remove_layer(guac_common_display_layer** head, guac_common_display_layer* display_layer) {
 
     /* Update previous element, if it exists */
     if (display_layer->prev != NULL)
@@ -275,8 +272,7 @@ static void guac_common_display_remove_layer(guac_common_display_layer** head,
 
 }
 
-guac_common_display_layer* guac_common_display_alloc_layer(
-        guac_common_display* display, int width, int height) {
+guac_common_display_layer* guac_common_display_alloc_layer(guac_common_display* display, int width, int height) {
 
     pthread_mutex_lock(&display->_lock);
 
@@ -296,8 +292,7 @@ guac_common_display_layer* guac_common_display_alloc_layer(
 
 }
 
-guac_common_display_layer* guac_common_display_alloc_buffer(
-        guac_common_display* display, int width, int height) {
+guac_common_display_layer* guac_common_display_alloc_buffer(guac_common_display* display, int width, int height) {
 
     pthread_mutex_lock(&display->_lock);
 
@@ -305,12 +300,10 @@ guac_common_display_layer* guac_common_display_alloc_buffer(
     guac_layer* buffer = guac_client_alloc_buffer(display->client);
 
     /* Allocate corresponding surface */
-    guac_common_surface* surface = guac_common_surface_alloc(display->client,
-            display->client->socket, buffer, width, height);
+    guac_common_surface* surface = guac_common_surface_alloc(display->client,display->client->socket, buffer, width, height);
 
     /* Add buffer and surface to list */
-    guac_common_display_layer* display_layer =
-        guac_common_display_add_layer(&display->buffers, buffer, surface);
+    guac_common_display_layer* display_layer = guac_common_display_add_layer(&display->buffers, buffer, surface);
 
     pthread_mutex_unlock(&display->_lock);
     return display_layer;

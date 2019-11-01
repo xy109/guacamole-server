@@ -118,3 +118,6 @@ void guac_rdp_process_cb_data_response(guac_client* client,
 
 #endif
 
+#ifdef FREERDP_2
+void guac_rdp_cliprdr_init(rdp_freerdp_context* context,CliprdrClientContext* cliprdr);
+#endif

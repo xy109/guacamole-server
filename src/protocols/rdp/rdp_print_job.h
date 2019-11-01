@@ -28,7 +28,6 @@
 
 #include <pthread.h>
 #include <unistd.h>
-
 /**
  * The maximum number of bytes in the filename of an RDP print job sent as a
  * file over the Guacamole protocol, including NULL terminator.
@@ -50,7 +49,8 @@
 /**
  * The current state of an RDP print job.
  */
-typedef enum guac_rdp_print_job_state {
+typedef enum guac_rdp_print_job_state
+{
 
     /**
      * The print stream has been opened with the Guacamole client, but the
@@ -77,19 +77,19 @@ typedef enum guac_rdp_print_job_state {
 /**
  * Data specific to an instance of the printer device.
  */
-typedef struct guac_rdp_print_job {
-
-    guac_client* client;
+typedef struct guac_rdp_print_job
+{
+    guac_client *client;
 
     /**
      * The user receiving the output from the print job.
      */
-    guac_user* user;
+    guac_user *user;
 
     /**
      * The stream along which the print job output should be sent.
      */
-    guac_stream* stream;
+    guac_stream *stream;
 
     /**
      * The PID of the print filter process converting PostScript data into PDF.
@@ -144,23 +144,23 @@ typedef struct guac_rdp_print_job {
      * The number of bytes received in the current print job.
      */
     int bytes_received;
-
 } guac_rdp_print_job;
 
 /**
  * A blob of print data being sent to the Guacamole user.
  */
-typedef struct guac_rdp_print_blob {
+typedef struct guac_rdp_print_blob
+{
 
     /**
      * The print job which generated the data being sent.
      */
-    guac_rdp_print_job* job;
+    guac_rdp_print_job *job;
 
     /**
      * The data being sent.
      */
-    void* buffer;
+    void *buffer;
 
     /**
      * The number of bytes of data being sent.
@@ -186,7 +186,7 @@ typedef struct guac_rdp_print_blob {
  *     A pointer to a newly-allocated guac_rdp_print_job, or NULL if the
  *     print job could not be created.
  */
-void* guac_rdp_print_job_alloc(guac_user* user, void* data);
+void *guac_rdp_print_job_alloc(guac_user *user, void *data);
 
 /**
  * Writes PostScript print data to the given active print job. The print job
@@ -207,8 +207,8 @@ void* guac_rdp_print_job_alloc(guac_user* user, void* data);
  *     The number of bytes written, or -1 if an error occurs which prevents
  *     further writes.
  */
-int guac_rdp_print_job_write(guac_rdp_print_job* job,
-        void* buffer, int length);
+int guac_rdp_print_job_write(guac_rdp_print_job *job,
+                             void *buffer, int length);
 
 /**
  * Frees the memory associated with the given print job, closing all underlying
@@ -219,7 +219,7 @@ int guac_rdp_print_job_write(guac_rdp_print_job* job,
  * @param job
  *     The print job to free.
  */
-void guac_rdp_print_job_free(guac_rdp_print_job* job);
+void guac_rdp_print_job_free(guac_rdp_print_job *job);
 
 /**
  * Forcibly kills the given print job, stopping all associated processing and
@@ -229,7 +229,6 @@ void guac_rdp_print_job_free(guac_rdp_print_job* job);
  * @param job
  *     The print job to kill.
  */
-void guac_rdp_print_job_kill(guac_rdp_print_job* job);
+void guac_rdp_print_job_kill(guac_rdp_print_job *job);
 
 #endif
-

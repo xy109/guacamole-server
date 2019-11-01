@@ -23,7 +23,15 @@
 
 #include "config.h"
 
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#else
+#include <freerdp/channels/rdpdr.h>
+#if HAVE_FREERDP_CLIENT_PRINTER_H
+#include <freerdp/client/printer.h>
+#endif
+#endif
+
 #include <guacamole/client.h>
 
 #ifdef ENABLE_WINPR
@@ -36,6 +44,57 @@
  * The maximum number of bytes to allow for a device read.
  */
 #define GUAC_RDP_MAX_READ_BUFFER 4194304
+
+#if !HAVE_FREERDP_CLIENT_PRINTER_H && defined(FREERDP_2)
+typedef struct rdp_printer_driver rdpPrinterDriver;
+typedef struct rdp_printer rdpPrinter;
+typedef struct rdp_print_job rdpPrintJob;
+
+typedef rdpPrinter** (*pcEnumPrinters) (rdpPrinterDriver* driver);
+typedef void (*pcReleaseEnumPrinters)(rdpPrinter** printers);
+typedef rdpPrinter* (*pcGetPrinter) (rdpPrinterDriver* driver, const char* name, const char* driverName);
+typedef void (*pcReferencePrinterDriver)(rdpPrinterDriver* driver);
+
+struct rdp_printer_driver
+{
+	pcEnumPrinters EnumPrinters;
+	pcReleaseEnumPrinters ReleaseEnumPrinters;
+	pcGetPrinter GetPrinter;
+
+    pcReferencePrinterDriver AddRef;
+	pcReferencePrinterDriver ReleaseRef;
+};
+
+typedef rdpPrintJob* (*pcCreatePrintJob) (rdpPrinter* printer, UINT32 id);
+typedef rdpPrintJob* (*pcFindPrintJob) (rdpPrinter* printer, UINT32 id);
+typedef void (*pcFreePrinter) (rdpPrinter* printer);
+typedef void (*pcReferencePrinter)(rdpPrinter* printer);
+struct rdp_printer
+{
+	int id;
+	char* name;
+	char* driver;
+	BOOL is_default;
+
+	size_t references;
+    rdpPrinterDriver* backend;
+	pcCreatePrintJob CreatePrintJob;
+	pcFindPrintJob FindPrintJob;
+    pcReferencePrinter AddRef;
+	pcReferencePrinter ReleaseRef;
+	pcFreePrinter Free;
+};
+typedef UINT (*pcWritePrintJob) (rdpPrintJob* printjob, BYTE* data, int size);
+typedef void (*pcClosePrintJob) (rdpPrintJob* printjob);
+struct rdp_print_job
+{
+	UINT32 id;
+	rdpPrinter* printer;
+
+	pcWritePrintJob Write;
+	pcClosePrintJob Close;
+};
+#endif
 
 typedef struct guac_rdpdrPlugin guac_rdpdrPlugin;
 typedef struct guac_rdpdr_device guac_rdpdr_device;
@@ -62,6 +121,9 @@ typedef void guac_rdpdr_device_free_handler(guac_rdpdr_device* device);
  * Arbitrary device forwarded over the RDPDR channel.
  */
 struct guac_rdpdr_device {
+ #ifdef FREERDP_2
+ rdpPrinterDriver driver; 
+ #endif   
 
     /**
      * The RDPDR plugin owning this device.
@@ -113,7 +175,10 @@ struct guac_rdpdr_device {
      * Arbitrary data, used internally by the handlers for this device.
      */
     void* data;
-
+#ifdef FREERDP_2
+	int id_sequence;
+	size_t references;
+#endif
 };
 
 /**
@@ -121,14 +186,14 @@ struct guac_rdpdr_device {
  * FreeRDP.
  */
 struct guac_rdpdrPlugin {
-
+#ifndef FREERDP_2
     /**
      * The FreeRDP parts of this plugin. This absolutely MUST be first.
      * FreeRDP depends on accessing this structure as if it were an instance
      * of rdpSvcPlugin.
      */
     rdpSvcPlugin plugin;
-
+#endif // !FREERDP_2
     /**
      * Reference to the client owning this instance of the RDPDR plugin.
      */
@@ -145,7 +210,7 @@ struct guac_rdpdrPlugin {
     guac_rdpdr_device devices[8];
 
 };
-
+#ifndef FREERDP_2
 /**
  * Handler called when this plugin is loaded by FreeRDP.
  */
@@ -167,7 +232,7 @@ void guac_rdpdr_process_terminate(rdpSvcPlugin* plugin);
  * all events will be ignored and simply free'd.
  */
 void guac_rdpdr_process_event(rdpSvcPlugin* plugin, wMessage* event);
-
+#endif
 /**
  * Creates a new stream which contains the common DR_DEVICE_IOCOMPLETION header
  * used for virtually all responses.

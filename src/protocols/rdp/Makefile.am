@@ -56,6 +56,7 @@ libguac_client_rdp_la_SOURCES = \
     rdp_settings.c              \
     rdp_stream.c                \
     rdp_svc.c                   \
+    rdp_channel.c               \
     resolution.c                \
     unicode.c                   \
     user.c
@@ -128,6 +129,7 @@ noinst_HEADERS =                             \
     rdp_status.h                             \
     rdp_stream.h                             \
     rdp_svc.h                                \
+    rdp_channel.h                            \
     resolution.h                             \
     unicode.h                                \
     user.h
@@ -279,12 +281,24 @@ rdp_keymaps =                   \
     $(srcdir)/keymaps/tr_tr_qwerty.keymap
 
 _generated_keymaps.c: $(rdp_keymaps)
-	$(srcdir)/keymaps/generate.pl $(rdp_keymaps)
+	perl $(srcdir)/keymaps/generate.pl $(rdp_keymaps)
 
 EXTRA_DIST =            \
     $(rdp_keymaps)      \
     keymaps/generate.pl
 
+
+if ENABLE_RDP_2
+    # FreeRDP 2.0
+    freerdp_LTLIBRARIES =       \
+        libguacprinter-client.la  
+
+    libguacprinter_client_la_SOURCES = ${guacdr_sources}
+    libguacprinter_client_la_CFLAGS  = ${guacdr_cflags}
+    libguacprinter_client_la_LDFLAGS = ${guacdr_ldflags}
+    libguacprinter_client_la_LIBADD  = ${guacdr_libadd}
+
+else
 if LEGACY_FREERDP_EXTENSIONS
 
 # FreeRDP 1.0-style extensions
@@ -292,7 +306,7 @@ freerdp_LTLIBRARIES = \
     guacai.la         \
     guacdr.la         \
     guacsnd.la        \
-    guacsvc.la
+    guacsvc.la        
 
 guacai_la_SOURCES = ${guacai_sources}
 guacai_la_CFLAGS  = ${guacai_cflags}
@@ -314,7 +328,7 @@ guacsvc_la_CFLAGS  = ${guacsvc_cflags}
 guacsvc_la_LDFLAGS = ${guacsvc_ldflags}
 guacsvc_la_LIBADD  = ${guacsvc_libadd}
 
-else
+else 
 
 # FreeRDP 1.1 (and hopefully onward) extensions
 freerdp_LTLIBRARIES = \
@@ -344,6 +358,10 @@ guacsvc_client_la_LDFLAGS = ${guacsvc_ldflags}
 guacsvc_client_la_LIBADD  = ${guacsvc_libadd}
 
 endif
+endif
 
-freerdpdir = ${libdir}/freerdp
-
+if ENABLE_RDP_2
+    freerdpdir = ${libdir}/freerdp2
+else
+    freerdpdir = ${libdir}/freerdp
+endif

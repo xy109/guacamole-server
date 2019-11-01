@@ -22,8 +22,9 @@
 #define __GUAC_RDPSND_SERVICE_H
 
 #include "config.h"
-
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
 #include <guacamole/client.h>
 
 #ifdef ENABLE_WINPR
@@ -68,14 +69,14 @@ typedef struct guac_pcm_format {
  * FreeRDP.
  */
 typedef struct guac_rdpsndPlugin {
-
+#ifndef FREERDP_2
     /**
      * The FreeRDP parts of this plugin. This absolutely MUST be first.
      * FreeRDP depends on accessing this structure as if it were an instance
      * of rdpSvcPlugin.
      */
     rdpSvcPlugin plugin;
-
+#endif
     /**
      * The Guacamole client associated with the guac_audio_stream that this
      * plugin should use to stream received audio packets.
@@ -125,6 +126,7 @@ typedef struct guac_rdpsndPlugin {
 
 } guac_rdpsndPlugin;
 
+#ifndef FREERDP_2
 /**
  * Handler called when this plugin is loaded by FreeRDP.
  */
@@ -146,6 +148,6 @@ void guac_rdpsnd_process_terminate(rdpSvcPlugin* plugin);
  * all events will be ignored and simply free'd.
  */
 void guac_rdpsnd_process_event(rdpSvcPlugin* plugin, wMessage* event);
-
+#endif
 #endif
 

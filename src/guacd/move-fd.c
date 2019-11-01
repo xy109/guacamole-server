@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include "move-fd.h"
+#include "log.h"
 
 /* Required for CMSG_* macros on BSD */
 #define __BSD_VISIBLE 1
@@ -30,8 +31,10 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <guacamole/client.h>
 
-int guacd_send_fd(int sock, int fd) {
+int guacd_send_fd(int sock, int fd)
+{
 
     struct msghdr message = {0};
     char message_data[] = {'G'};
@@ -39,8 +42,8 @@ int guacd_send_fd(int sock, int fd) {
     /* Assign data buffer */
     struct iovec io_vector[1];
     io_vector[0].iov_base = message_data;
-    io_vector[0].iov_len  = sizeof(message_data);
-    message.msg_iov    = io_vector;
+    io_vector[0].iov_len = sizeof(message_data);
+    message.msg_iov = io_vector;
     message.msg_iovlen = 1;
 
     /* Assign ancillary data buffer */
@@ -49,20 +52,21 @@ int guacd_send_fd(int sock, int fd) {
     message.msg_controllen = sizeof(buffer);
 
     /* Set fields of control message header */
-    struct cmsghdr* control = CMSG_FIRSTHDR(&message);
+    struct cmsghdr *control = CMSG_FIRSTHDR(&message);
     control->cmsg_level = SOL_SOCKET;
-    control->cmsg_type  = SCM_RIGHTS;
-    control->cmsg_len   = CMSG_LEN(sizeof(fd));
+    control->cmsg_type = SCM_RIGHTS;
+    control->cmsg_len = CMSG_LEN(sizeof(fd));
 
     /* Add file descriptor to message data */
     memcpy(CMSG_DATA(control), &fd, sizeof(fd));
 
     /* Send file descriptor */
-    return (sendmsg(sock, &message, 0) == sizeof(message_data));
-
+    int size = (sendmsg(sock, &message, 0) == sizeof(message_data));
+    return size;
 }
 
-int guacd_recv_fd(int sock) {
+int guacd_recv_fd(int sock)
+{
 
     int fd;
 
@@ -72,10 +76,9 @@ int guacd_recv_fd(int sock) {
     /* Assign data buffer */
     struct iovec io_vector[1];
     io_vector[0].iov_base = message_data;
-    io_vector[0].iov_len  = sizeof(message_data);
-    message.msg_iov    = io_vector;
+    io_vector[0].iov_len = sizeof(message_data);
+    message.msg_iov = io_vector;
     message.msg_iovlen = 1;
-
 
     /* Assign ancillary data buffer */
     char buffer[CMSG_SPACE(sizeof(fd))];
@@ -83,30 +86,32 @@ int guacd_recv_fd(int sock) {
     message.msg_controllen = sizeof(buffer);
 
     /* Receive file descriptor */
-    if (recvmsg(sock, &message, 0) == sizeof(message_data)) {
+    if (recvmsg(sock, &message, 0) == sizeof(message_data))
+    {
 
         /* Validate payload */
-        if (message_data[0] != 'G') {
+        if (message_data[0] != 'G')
+        {
             errno = EPROTO;
+            guacd_log(GUAC_LOG_ERROR, "Failed to receive message: %s", message);
             return -1;
         }
 
         /* Iterate control headers, looking for the sent file descriptor */
-        struct cmsghdr* control;
-        for (control = CMSG_FIRSTHDR(&message); control != NULL; control = CMSG_NXTHDR(&message, control)) {
+        struct cmsghdr *control;
+        for (control = CMSG_FIRSTHDR(&message); control != NULL; control = CMSG_NXTHDR(&message, control))
+        {
 
             /* Pull file descriptor from data */
-            if (control->cmsg_level == SOL_SOCKET && control->cmsg_type == SCM_RIGHTS) {
+            if (control->cmsg_level == SOL_SOCKET && control->cmsg_type == SCM_RIGHTS)
+            {
                 memcpy(&fd, CMSG_DATA(control), sizeof(fd));
                 return fd;
             }
-
         }
 
     } /* end if recvmsg() success */
-
+    guacd_log(GUAC_LOG_ERROR, "Failed to receive file descriptor: %s", message);
     /* Failed to receive file descriptor */
     return -1;
-
 }
-

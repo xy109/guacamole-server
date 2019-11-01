@@ -31,6 +31,8 @@ int guacenc_handle_img(guacenc_display* display, int argc, char** argv) {
     if (argc < 6) {
         guacenc_log(GUAC_LOG_WARNING, "\"img\" instruction incomplete");
         return 1;
+    }else{
+        guacenc_log(GUAC_LOG_DEBUG, "\"img\" instruction complete");
     }
 
     /* Parse arguments */

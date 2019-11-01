@@ -31,32 +31,67 @@
 #else
 #include "compat/winpr-wtypes.h"
 #endif
+#ifdef FREERDP_2
+#include <freerdp/gdi/gdi.h>
+#endif
 
-UINT32 guac_rdp_convert_color(rdpContext* context, UINT32 color) {
+UINT32 guac_rdp_convert_color(rdpContext *context, UINT32 color)
+{
 
 #ifdef HAVE_FREERDP_CONVERT_GDI_ORDER_COLOR
-    UINT32* palette = ((rdp_freerdp_context*) context)->palette;
+    UINT32 *palette = ((rdp_freerdp_context *)context)->palette;
 
     /* Convert given color to ARGB32 */
     return freerdp_convert_gdi_order_color(color,
-            guac_rdp_get_depth(context->instance), PIXEL_FORMAT_ARGB32,
-            (BYTE*) palette);
+                                           guac_rdp_get_depth(context->instance), PIXEL_FORMAT_ARGB32,
+                                           (BYTE *)palette);
 
 #elif defined(HAVE_FREERDP_COLOR_CONVERT_DRAWING_ORDER_COLOR_TO_GDI_COLOR)
-    CLRCONV* clrconv = ((rdp_freerdp_context*) context)->clrconv;
+    CLRCONV *clrconv = ((rdp_freerdp_context *)context)->clrconv;
 
     /* Convert given color to ARGB32 */
     return freerdp_color_convert_drawing_order_color_to_gdi_color(color,
-            guac_rdp_get_depth(context->instance), clrconv);
+                                                                  guac_rdp_get_depth(context->instance), clrconv);
 
-#else
-    CLRCONV* clrconv = ((rdp_freerdp_context*) context)->clrconv;
+#elif !defined(FREERDP_2)
+    CLRCONV *clrconv = ((rdp_freerdp_context *)context)->clrconv;
 
     /* Convert given color to ARGB32 */
     return freerdp_color_convert_var(color,
-            guac_rdp_get_depth(context->instance), 32,
-            clrconv);
+                                     guac_rdp_get_depth(context->instance), 32,
+                                     clrconv);
+#else
+    rdpGdi *gdi;
+    rdpSettings *settings;
+    UINT32 SrcFormat, DstFormat;
+
+    gdi = context->gdi;
+    settings = context->settings;
+
+    if (!gdi || !settings)
+        return color;
+
+    SrcFormat = gdi_get_pixel_format(context->settings->ColorDepth);
+
+    switch (GetBitsPerPixel(gdi->dstFormat))
+    {
+    case 32:
+        DstFormat = PIXEL_FORMAT_ABGR32;
+        break;
+
+    case 24:
+        DstFormat = PIXEL_FORMAT_BGR24;
+        break;
+
+    case 16:
+        DstFormat = PIXEL_FORMAT_RGB16;
+        break;
+
+    default:
+        return color;
+    }
+
+    return FreeRDPConvertColor(color, SrcFormat, DstFormat, &gdi->palette);
 #endif
-
+    return color;
 }
-

@@ -298,7 +298,6 @@ void guac_common_surface_resize(guac_common_surface* surface, int w, int h);
  */
 void guac_common_surface_draw(guac_common_surface* surface, int x, int y,
         cairo_surface_t* src);
-
 /**
  * Paints to the given guac_common_surface using the given data as a stencil,
  * filling opaque regions with the specified color, and leaving transparent

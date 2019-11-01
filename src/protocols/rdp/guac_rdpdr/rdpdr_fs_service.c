@@ -25,7 +25,10 @@
 #include "rdpdr_messages.h"
 #include "rdpdr_service.h"
 
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
+
 #include <guacamole/client.h>
 #include <guacamole/protocol.h>
 #include <guacamole/socket.h>

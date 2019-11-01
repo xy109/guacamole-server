@@ -720,9 +720,10 @@ int __guac_user_call_opcode_handler(__guac_instruction_handler_mapping* map,
     while (current->opcode != NULL) {
 
         /* If recognized, call handler */
-        if (strcmp(opcode, current->opcode) == 0)
+        if (strcmp(opcode, current->opcode) == 0){
+            guac_user_log(user, GUAC_LOG_DEBUG, "Call handler \"%s\"", opcode);
             return current->handler(user, argc, argv);
-
+        }
         current++;
     }
 

@@ -17,7 +17,6 @@
  * under the License.
  */
 
-
 #ifndef __GUAC_RDPDR_PRINTER_H
 #define __GUAC_RDPDR_PRINTER_H
 
@@ -30,7 +29,39 @@
 #else
 #include "compat/winpr-stream.h"
 #endif
+#endif
 
+#if defined(FREERDP_2)
+#include "rdp_print_job.h"
+typedef struct guac_rdp_printer_job guac_rdp_printer_job;
+typedef struct guac_rdp_printer
+{
+	rdpPrinter printer;
+	guac_rdp_printer_job *printjob;
+	guac_client *client;
+} guac_rdp_printer;
+
+struct guac_rdp_printer_job{
+	rdpPrintJob rdpPrintJob;
+	guac_rdp_print_job *clientPrintJob;
+	guac_rdp_printer *printer;
+};
+#ifndef HAVE_FREERDP_CLIENT_PRINTER_H
+typedef struct _PRINTER_DEVICE PRINTER_DEVICE;
+struct _PRINTER_DEVICE
+{
+	DEVICE device;
+	rdpPrinter* printer;
+	WINPR_PSLIST_HEADER pIrpList;
+	HANDLE event;
+	HANDLE stopEvent;
+	HANDLE thread;
+	rdpContext* rdpcontext;
+	char port[64];
+	guac_client *client;
+};
+#endif
+#else
 /**
  * Registers a new printer device within the RDPDR plugin. This must be done
  * before RDPDR connection finishes.
@@ -42,7 +73,5 @@
  *     The name of the printer that will be registered with the RDP
  *     connection and passed through to the server.
  */
-void guac_rdpdr_register_printer(guac_rdpdrPlugin* rdpdr, char* printer_name);
-
+void guac_rdpdr_register_printer(guac_rdpdrPlugin *rdpdr, char *printer_name);
 #endif
-

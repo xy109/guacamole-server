@@ -23,8 +23,9 @@
 #include "rdpdr_service.h"
 #include "rdp_fs.h"
 #include "rdp_status.h"
-
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
 #include <guacamole/unicode.h>
 
 #ifdef ENABLE_WINPR
@@ -52,9 +53,9 @@ void guac_rdpdr_fs_process_query_volume_info(guac_rdpdr_device* device,
     Stream_Write_UINT8(output_stream, FALSE); /* SupportsObjects */
     /* Reserved field must not be sent */
     Stream_Write(output_stream, GUAC_FILESYSTEM_LABEL, GUAC_FILESYSTEM_LABEL_LENGTH);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_query_size_info(guac_rdpdr_device* device, wStream* input_stream,
@@ -75,9 +76,9 @@ void guac_rdpdr_fs_process_query_size_info(guac_rdpdr_device* device, wStream* i
     Stream_Write_UINT64(output_stream, info.blocks_available); /* AvailableAllocationUnits */
     Stream_Write_UINT32(output_stream, 1);                     /* SectorsPerAllocationUnit */
     Stream_Write_UINT32(output_stream, info.block_size);       /* BytesPerSector */
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_query_device_info(guac_rdpdr_device* device, wStream* input_stream,
@@ -93,9 +94,9 @@ void guac_rdpdr_fs_process_query_device_info(guac_rdpdr_device* device, wStream*
     Stream_Write_UINT32(output_stream, 8);
     Stream_Write_UINT32(output_stream, FILE_DEVICE_DISK); /* DeviceType */
     Stream_Write_UINT32(output_stream, 0); /* Characteristics */
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_query_attribute_info(guac_rdpdr_device* device, wStream* input_stream,
@@ -118,9 +119,9 @@ void guac_rdpdr_fs_process_query_attribute_info(guac_rdpdr_device* device, wStre
     Stream_Write_UINT32(output_stream, GUAC_RDP_FS_MAX_PATH ); /* MaximumComponentNameLength */
     Stream_Write_UINT32(output_stream, name_len);
     Stream_Write(output_stream, device->device_name, name_len);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_query_full_size_info(guac_rdpdr_device* device, wStream* input_stream,
@@ -142,8 +143,8 @@ void guac_rdpdr_fs_process_query_full_size_info(guac_rdpdr_device* device, wStre
     Stream_Write_UINT64(output_stream, info.blocks_available); /* ActualAvailableAllocationUnits */
     Stream_Write_UINT32(output_stream, 1);                     /* SectorsPerAllocationUnit */
     Stream_Write_UINT32(output_stream, info.block_size);       /* BytesPerSector */
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 

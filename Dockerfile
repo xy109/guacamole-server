@@ -39,7 +39,7 @@ ARG BUILD_DEPENDENCIES="              \
         automake                      \
         gcc                           \
         libcairo2-dev                 \
-        libfreerdp-dev                \
+        freerdp2-dev                 \
         libjpeg62-turbo-dev           \
         libossp-uuid-dev              \
         libpango1.0-dev               \
@@ -92,11 +92,11 @@ ENV GUACD_LOG_LEVEL=info
 ARG RUNTIME_DEPENDENCIES="            \
         ca-certificates               \
         ghostscript                   \
-        libfreerdp-plugins-standard   \
         fonts-liberation              \
         fonts-dejavu                  \
         xfonts-terminus"
 
+# libfreerdp-plugins-standard   \
 # Copy build artifacts into this stage
 COPY --from=builder ${PREFIX_DIR} ${PREFIX_DIR}
 
@@ -119,4 +119,3 @@ EXPOSE 4822
 # PREFIX_DIR build argument.
 #
 CMD /usr/local/guacamole/sbin/guacd -b 0.0.0.0 -L $GUACD_LOG_LEVEL -f
-

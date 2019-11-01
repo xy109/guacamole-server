@@ -34,17 +34,18 @@
 /**
  * Parameters required by the user input thread.
  */
-typedef struct guac_user_input_thread_params {
+typedef struct guac_user_input_thread_params
+{
 
     /**
      * The parser which will be used throughout the user's session.
      */
-    guac_parser* parser;
+    guac_parser *parser;
 
     /**
      * A reference to the connected user.
      */
-    guac_user* user;
+    guac_user *user;
 
     /**
      * The number of microseconds to wait for instructions from a connected
@@ -67,27 +68,27 @@ typedef struct guac_user_input_thread_params {
  * @param message
  *     The message to log.
  */
-static void guac_user_log_guac_error(guac_user* user,
-        guac_client_log_level level, const char* message) {
+static void guac_user_log_guac_error(guac_user *user,
+                                     guac_client_log_level level, const char *message)
+{
 
-    if (guac_error != GUAC_STATUS_SUCCESS) {
+    if (guac_error != GUAC_STATUS_SUCCESS)
+    {
 
         /* If error message provided, include in log */
         if (guac_error_message != NULL)
             guac_user_log(user, level, "%s: %s", message,
-                    guac_error_message);
+                          guac_error_message);
 
         /* Otherwise just log with standard status string */
         else
             guac_user_log(user, level, "%s: %s", message,
-                    guac_status_string(guac_error));
-
+                          guac_status_string(guac_error));
     }
 
     /* Just log message if no status code */
     else
         guac_user_log(user, level, "%s", message);
-
 }
 
 /**
@@ -97,21 +98,21 @@ static void guac_user_log_guac_error(guac_user* user,
  * @param user
  *     The guac_user associated with the failed Guacamole protocol handshake.
  */
-static void guac_user_log_handshake_failure(guac_user* user) {
+static void guac_user_log_handshake_failure(guac_user *user)
+{
 
     if (guac_error == GUAC_STATUS_CLOSED)
         guac_user_log(user, GUAC_LOG_INFO,
-                "Guacamole connection closed during handshake");
+                      "Guacamole connection closed during handshake");
     else if (guac_error == GUAC_STATUS_PROTOCOL_ERROR)
         guac_user_log(user, GUAC_LOG_ERROR,
-                "Guacamole protocol violation. Perhaps the version of "
-                "guacamole-client is incompatible with this version of "
-                "libguac?");
+                      "Guacamole protocol violation. Perhaps the version of "
+                      "guacamole-client is incompatible with this version of "
+                      "libguac?");
     else
         guac_user_log(user, GUAC_LOG_WARNING,
-                "Guacamole handshake failed: %s",
-                guac_status_string(guac_error));
-
+                      "Guacamole handshake failed: %s",
+                      guac_status_string(guac_error));
 }
 
 /**
@@ -126,30 +127,34 @@ static void guac_user_log_handshake_failure(guac_user* user) {
  * @return
  *     Always NULL.
  */
-static void* guac_user_input_thread(void* data) {
+static void *guac_user_input_thread(void *data)
+{
 
-    guac_user_input_thread_params* params =
-        (guac_user_input_thread_params*) data;
+    guac_user_input_thread_params *params =
+        (guac_user_input_thread_params *)data;
 
     int usec_timeout = params->usec_timeout;
-    guac_user* user = params->user;
-    guac_parser* parser = params->parser;
-    guac_client* client = user->client;
-    guac_socket* socket = user->socket;
+    guac_user *user = params->user;
+    guac_parser *parser = params->parser;
+    guac_client *client = user->client;
+    guac_socket *socket = user->socket;
 
     /* Guacamole user input loop */
-    while (client->state == GUAC_CLIENT_RUNNING && user->active) {
+    while (client->state == GUAC_CLIENT_RUNNING && user->active)
+    {
 
         /* Read instruction, stop on error */
-        if (guac_parser_read(parser, socket, usec_timeout)) {
+        if (guac_parser_read(parser, socket, usec_timeout))
+        {
 
             if (guac_error == GUAC_STATUS_TIMEOUT)
                 guac_user_abort(user, GUAC_PROTOCOL_STATUS_CLIENT_TIMEOUT, "User is not responding.");
 
-            else {
+            else
+            {
                 if (guac_error != GUAC_STATUS_CLOSED)
                     guac_user_log_guac_error(user, GUAC_LOG_WARNING,
-                            "Guacamole connection failure");
+                                             "Guacamole connection failure");
                 guac_user_stop(user);
             }
 
@@ -161,13 +166,15 @@ static void* guac_user_input_thread(void* data) {
         guac_error = GUAC_STATUS_SUCCESS;
         guac_error_message = NULL;
 
+        guac_user_log(user, GUAC_LOG_DEBUG, "handler in user \"%s\" was \"%s\"", user, parser->opcode);
         /* Call handler, stop on error */
-        if (__guac_user_call_opcode_handler(__guac_instruction_handler_map, 
-                user, parser->opcode, parser->argc, parser->argv)) {
+        if (__guac_user_call_opcode_handler(__guac_instruction_handler_map,
+                                            user, parser->opcode, parser->argc, parser->argv))
+        {
 
             /* Log error */
             guac_user_log_guac_error(user, GUAC_LOG_WARNING,
-                    "User connection aborted");
+                                     "User connection aborted");
 
             /* Log handler details */
             guac_user_log(user, GUAC_LOG_DEBUG, "Failing instruction handler in user was \"%s\"", parser->opcode);
@@ -175,11 +182,10 @@ static void* guac_user_input_thread(void* data) {
             guac_user_stop(user);
             return NULL;
         }
-
     }
-
+    //, client->state, user->active
+    guac_user_log(user, GUAC_LOG_DEBUG, "protocol exit");
     return NULL;
-
 }
 
 /**
@@ -201,18 +207,19 @@ static void* guac_user_input_thread(void* data) {
  *     Zero if the I/O threads started successfully and user has disconnected,
  *     or non-zero if the I/O threads could not be started.
  */
-static int guac_user_start(guac_parser* parser, guac_user* user,
-        int usec_timeout) {
+static int guac_user_start(guac_parser *parser, guac_user *user,
+                           int usec_timeout)
+{
 
     guac_user_input_thread_params params = {
         .parser = parser,
         .user = user,
-        .usec_timeout = usec_timeout
-    };
+        .usec_timeout = usec_timeout};
 
     pthread_t input_thread;
 
-    if (pthread_create(&input_thread, NULL, guac_user_input_thread, (void*) &params)) {
+    if (pthread_create(&input_thread, NULL, guac_user_input_thread, (void *)&params))
+    {
         guac_user_log(user, GUAC_LOG_ERROR, "Unable to start input thread");
         guac_user_stop(user);
         return -1;
@@ -221,13 +228,13 @@ static int guac_user_start(guac_parser* parser, guac_user* user,
     /* Wait for I/O threads */
     pthread_join(input_thread, NULL);
 
+    guac_user_log(user, GUAC_LOG_INFO, "protocol send disconnect");
     /* Explicitly signal disconnect */
     guac_protocol_send_disconnect(user->socket);
     guac_socket_flush(user->socket);
 
     /* Done */
     return 0;
-
 }
 
 /**
@@ -250,74 +257,78 @@ static int guac_user_start(guac_parser* parser, guac_user* user,
  *     Zero if the handshake completes successfully with the connect opcode,
  *     or non-zero if an error occurs.
  */
-static int __guac_user_handshake(guac_user* user, guac_parser* parser,
-        int usec_timeout) {
-    
-    guac_socket* socket = user->socket;
-    
+static int __guac_user_handshake(guac_user *user, guac_parser *parser,
+                                 int usec_timeout)
+{
+
+    guac_socket *socket = user->socket;
+
     /* Handle each of the opcodes. */
-    while (guac_parser_read(parser, socket, usec_timeout) == 0) {
-        
+    while (guac_parser_read(parser, socket, usec_timeout) == 0)
+    {
+
+        guac_user_log(user, GUAC_LOG_DEBUG, "Processing instruction: %s",
+                      parser->opcode);
+
         /* If we receive the connect opcode, we're done. */
         if (strcmp(parser->opcode, "connect") == 0)
             return 0;
-        
-        guac_user_log(user, GUAC_LOG_DEBUG, "Processing instruction: %s",
-                parser->opcode);
-        
+
         /* Run instruction handler for opcode with arguments. */
         if (__guac_user_call_opcode_handler(__guac_handshake_handler_map, user,
-                parser->opcode, parser->argc, parser->argv)) {
-            
+                                            parser->opcode, parser->argc, parser->argv))
+        {
+
             guac_user_log_handshake_failure(user);
             guac_user_log_guac_error(user, GUAC_LOG_DEBUG,
-                    "Error handling instruction during handshake.");
+                                     "Error handling instruction during handshake.");
             guac_user_log(user, GUAC_LOG_DEBUG, "Failed opcode: %s",
-                    parser->opcode);
+                          parser->opcode);
 
             guac_parser_free(parser);
             return 1;
-            
         }
-        
     }
-    
+
     /* If we get here it's because we never got the connect instruction. */
     guac_user_log(user, GUAC_LOG_ERROR,
-            "Handshake failed, \"connect\" instruction was not received.");
+                  "Handshake failed, \"connect\" instruction was not received.");
     return 1;
 }
 
-int guac_user_handle_connection(guac_user* user, int usec_timeout) {
+int guac_user_handle_connection(guac_user *user, int usec_timeout)
+{
 
-    guac_socket* socket = user->socket;
-    guac_client* client = user->client;
-    
+    guac_socket *socket = user->socket;
+    guac_client *client = user->client;
+
     user->info.audio_mimetypes = NULL;
     user->info.image_mimetypes = NULL;
     user->info.video_mimetypes = NULL;
     user->info.timezone = NULL;
-    
+
     /* Count number of arguments. */
     int num_args;
-    for (num_args = 0; client->args[num_args] != NULL; num_args++);
-    
+    for (num_args = 0; client->args[num_args] != NULL; num_args++)
+        ;
+
     /* Send args */
-    if (guac_protocol_send_args(socket, client->args)
-            || guac_socket_flush(socket)) {
+    if (guac_protocol_send_args(socket, client->args) || guac_socket_flush(socket))
+    {
 
         /* Log error */
         guac_user_log_handshake_failure(user);
         guac_user_log_guac_error(user, GUAC_LOG_DEBUG,
-                "Error sending \"args\" to new user");
+                                 "Error sending \"args\" to new user");
 
         return 1;
     }
 
-    guac_parser* parser = guac_parser_alloc();
+    guac_parser *parser = guac_parser_alloc();
 
     /* Perform the handshake with the client. */
-    if (__guac_user_handshake(user, parser, usec_timeout)) {
+    if (__guac_user_handshake(user, parser, usec_timeout))
+    {
         guac_parser_free(parser);
         return 1;
     }
@@ -325,54 +336,57 @@ int guac_user_handle_connection(guac_user* user, int usec_timeout) {
     /* Acknowledge connection availability */
     guac_protocol_send_ready(socket, client->connection_id);
     guac_socket_flush(socket);
-    
+
     /* Verify argument count. */
-    if (parser->argc != (num_args + 1)) {
+    if (parser->argc != (num_args + 1))
+    {
         guac_client_log(client, GUAC_LOG_ERROR, "Client did not return the "
-                "expected number of arguments.");
+                                                "expected number of arguments.");
         return 1;
     }
-    
+
     /* Attempt to join user to connection. */
     if (guac_client_add_user(client, user, (parser->argc - 1), parser->argv + 1))
         guac_client_log(client, GUAC_LOG_ERROR, "User \"%s\" could NOT "
-                "join connection \"%s\"", user->user_id, client->connection_id);
+                                                "join connection \"%s\"",
+                        user->user_id, client->connection_id);
 
     /* Begin user connection if join successful */
-    else {
+    else
+    {
 
         guac_client_log(client, GUAC_LOG_INFO, "User \"%s\" joined connection "
-                "\"%s\" (%i users now present)", user->user_id,
-                client->connection_id, client->connected_users);
-        if (strcmp(parser->argv[0],"") != 0)
+                                               "\"%s\" (%i users now present)",
+                        user->user_id,
+                        client->connection_id, client->connected_users);
+        if (strcmp(parser->argv[0], "") != 0)
             guac_client_log(client, GUAC_LOG_DEBUG, "Client is using protocol "
-                    "version \"%s\"", parser->argv[0]);
+                                                    "version \"%s\"",
+                            parser->argv[0]);
         else
             guac_client_log(client, GUAC_LOG_DEBUG, "Client has not defined "
-                    "its protocol version.");
+                                                    "its protocol version.");
 
         /* Handle user I/O, wait for connection to terminate */
         guac_user_start(parser, user, usec_timeout);
-
+        guac_client_log(client, GUAC_LOG_DEBUG, "user \"%s\" added.", user->user_id);
         /* Remove/free user */
         guac_client_remove_user(client, user);
         guac_client_log(client, GUAC_LOG_INFO, "User \"%s\" disconnected (%i "
-                "users remain)", user->user_id, client->connected_users);
-
+                                               "users remain)",
+                        user->user_id, client->connected_users);
     }
-    
+
     /* Free mimetype character arrays. */
-    guac_free_mimetypes((char **) user->info.audio_mimetypes);
-    guac_free_mimetypes((char **) user->info.image_mimetypes);
-    guac_free_mimetypes((char **) user->info.video_mimetypes);
-    
+    guac_free_mimetypes((char **)user->info.audio_mimetypes);
+    guac_free_mimetypes((char **)user->info.image_mimetypes);
+    guac_free_mimetypes((char **)user->info.video_mimetypes);
+
     /* Free timezone info. */
-    free((char *) user->info.timezone);
-    
+    free((char *)user->info.timezone);
+
     guac_parser_free(parser);
 
     /* Successful disconnect */
     return 0;
-
 }
-

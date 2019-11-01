@@ -23,8 +23,9 @@
 #include "rdpdr_messages.h"
 #include "rdpdr_service.h"
 #include "unicode.h"
-
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
 #include <guacamole/client.h>
 #include <guacamole/unicode.h>
 
@@ -50,9 +51,9 @@ static void guac_rdpdr_send_client_announce_reply(guac_rdpdrPlugin* rdpdr,
     Stream_Write_UINT16(output_stream, major);
     Stream_Write_UINT16(output_stream, minor);
     Stream_Write_UINT32(output_stream, client_id);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) rdpdr, output_stream);
-
+#endif
 }
 
 static void guac_rdpdr_send_client_name_request(guac_rdpdrPlugin* rdpdr, const char* name) {
@@ -69,9 +70,9 @@ static void guac_rdpdr_send_client_name_request(guac_rdpdrPlugin* rdpdr, const c
     Stream_Write_UINT32(output_stream, 0); /* 0 required by RDPDR spec */
     Stream_Write_UINT32(output_stream, name_bytes);
     Stream_Write(output_stream, name, name_bytes);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) rdpdr, output_stream);
-
+#endif
 }
 
 static void guac_rdpdr_send_client_capability(guac_rdpdrPlugin* rdpdr) {
@@ -116,8 +117,9 @@ static void guac_rdpdr_send_client_capability(guac_rdpdrPlugin* rdpdr) {
     Stream_Write_UINT16(output_stream, CAP_DRIVE_TYPE);
     Stream_Write_UINT16(output_stream, 8);
     Stream_Write_UINT32(output_stream, DRIVE_CAPABILITY_VERSION_02);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) rdpdr, output_stream);
+#endif
     guac_client_log(rdpdr->client, GUAC_LOG_INFO, "Capabilities sent.");
 
 }
@@ -148,8 +150,9 @@ static void guac_rdpdr_send_client_device_list_announce_request(guac_rdpdrPlugin
                 rdpdr->devices[i].device_id, rdpdr->devices[i].device_name);
         
     }
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) rdpdr, output_stream);
+  #endif  
     guac_client_log(rdpdr->client, GUAC_LOG_INFO, "All supported devices sent.");
 
 }

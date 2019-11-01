@@ -22,8 +22,9 @@
 #include "common/list.h"
 #include "rdp.h"
 #include "rdp_svc.h"
-
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
 #include <guacamole/client.h>
 #include <guacamole/string.h>
 
@@ -41,7 +42,9 @@ guac_rdp_svc* guac_rdp_alloc_svc(guac_client* client, char* name) {
 
     /* Init SVC */
     svc->client = client;
+    #ifndef FREERDP_2
     svc->plugin = NULL;
+    #endif
     svc->output_pipe = NULL;
 
     /* Init name */
@@ -154,7 +157,7 @@ guac_rdp_svc* guac_rdp_remove_svc(guac_client* client, const char* name) {
 }
 
 void guac_rdp_svc_write(guac_rdp_svc* svc, void* data, int length) {
-
+#ifndef FREERDP_2
     wStream* output_stream;
 
     /* Do not write of plugin not associated */
@@ -171,6 +174,6 @@ void guac_rdp_svc_write(guac_rdp_svc* svc, void* data, int length) {
 
     /* Send packet */
     svc_plugin_send(svc->plugin, output_stream);
-
+#endif
 }
 

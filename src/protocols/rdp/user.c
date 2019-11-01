@@ -40,18 +40,21 @@
 
 #include <pthread.h>
 
-int guac_rdp_user_join_handler(guac_user* user, int argc, char** argv) {
+int guac_rdp_user_join_handler(guac_user *user, int argc, char **argv)
+{
+    guac_user_log(user, GUAC_LOG_DEBUG, "start guac_rdp_user_join_handler: %d.", user->owner);
 
-    guac_rdp_client* rdp_client = (guac_rdp_client*) user->client->data;
+    guac_rdp_client *rdp_client = (guac_rdp_client *)user->client->data;
 
     /* Parse provided arguments */
-    guac_rdp_settings* settings = guac_rdp_parse_args(user,
-            argc, (const char**) argv);
+    guac_rdp_settings *settings = guac_rdp_parse_args(user,
+                                                      argc, (const char **)argv);
 
     /* Fail if settings cannot be parsed */
-    if (settings == NULL) {
+    if (settings == NULL)
+    {
         guac_user_log(user, GUAC_LOG_INFO,
-                "Badly formatted client arguments.");
+                      "Badly formatted client arguments.");
         return 1;
     }
 
@@ -59,27 +62,29 @@ int guac_rdp_user_join_handler(guac_user* user, int argc, char** argv) {
     user->data = settings;
 
     /* Connect via RDP if owner */
-    if (user->owner) {
+    if (user->owner)
+    {
 
         /* Store owner's settings at client level */
         rdp_client->settings = settings;
 
         /* Start client thread */
         if (pthread_create(&rdp_client->client_thread, NULL,
-                    guac_rdp_client_thread, user->client)) {
+                           guac_rdp_client_thread, user->client))
+        {
             guac_user_log(user, GUAC_LOG_ERROR,
-                    "Unable to start VNC client thread.");
+                          "Unable to start rdp client thread.");
             return 1;
         }
 
         /* Handle inbound audio streams if audio input is enabled */
         if (settings->enable_audio_input)
             user->audio_handler = guac_rdp_audio_handler;
-
     }
 
     /* If not owner, synchronize with current state */
-    else {
+    else
+    {
 
         /* Synchronize any audio stream */
         if (rdp_client->audio)
@@ -91,11 +96,11 @@ int guac_rdp_user_join_handler(guac_user* user, int argc, char** argv) {
         /* Synchronize with current display */
         guac_common_display_dup(rdp_client->display, user, user->socket);
         guac_socket_flush(user->socket);
-
     }
 
     /* Only handle events if not read-only */
-    if (!settings->read_only) {
+    if (!settings->read_only)
+    {
 
         /* General mouse/keyboard events */
         user->mouse_handler = guac_rdp_user_mouse_handler;
@@ -113,24 +118,24 @@ int guac_rdp_user_join_handler(guac_user* user, int argc, char** argv) {
 
         /* Inbound arbitrary named pipes */
         user->pipe_handler = guac_rdp_svc_pipe_handler;
-
     }
-
+    guac_user_log(user, GUAC_LOG_DEBUG, "end guac_rdp_user_join_handler.");
     return 0;
-
 }
 
-int guac_rdp_user_file_handler(guac_user* user, guac_stream* stream,
-        char* mimetype, char* filename) {
+int guac_rdp_user_file_handler(guac_user *user, guac_stream *stream,
+                               char *mimetype, char *filename)
+{
 
-    guac_rdp_client* rdp_client = (guac_rdp_client*) user->client->data;
+    guac_rdp_client *rdp_client = (guac_rdp_client *)user->client->data;
 
 #ifdef ENABLE_COMMON_SSH
-    guac_rdp_settings* settings = rdp_client->settings;
+    guac_rdp_settings *settings = rdp_client->settings;
 
     /* If SFTP is enabled, it should be used for default uploads only if RDPDR
      * is not enabled or its upload directory has been set */
-    if (rdp_client->sftp_filesystem != NULL) {
+    if (rdp_client->sftp_filesystem != NULL)
+    {
         if (!settings->drive_enabled || settings->sftp_directory != NULL)
             return guac_rdp_sftp_file_handler(user, stream, mimetype, filename);
     }
@@ -142,25 +147,26 @@ int guac_rdp_user_file_handler(guac_user* user, guac_stream* stream,
 
     /* File transfer not enabled */
     guac_protocol_send_ack(user->socket, stream, "File transfer disabled",
-            GUAC_PROTOCOL_STATUS_UNSUPPORTED);
+                           GUAC_PROTOCOL_STATUS_UNSUPPORTED);
     guac_socket_flush(user->socket);
 
     return 0;
 }
 
-int guac_rdp_user_leave_handler(guac_user* user) {
+int guac_rdp_user_leave_handler(guac_user *user)
+{
 
-    guac_rdp_client* rdp_client = (guac_rdp_client*) user->client->data;
+    guac_rdp_client *rdp_client = (guac_rdp_client *)user->client->data;
 
     /* Update shared cursor state */
     guac_common_cursor_remove_user(rdp_client->display->cursor, user);
 
     /* Free settings if not owner (owner settings will be freed with client) */
-    if (!user->owner) {
-        guac_rdp_settings* settings = (guac_rdp_settings*) user->data;
+    if (!user->owner)
+    {
+        guac_rdp_settings *settings = (guac_rdp_settings *)user->data;
         guac_rdp_settings_free(settings);
     }
 
     return 0;
 }
-

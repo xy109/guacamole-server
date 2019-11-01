@@ -30,10 +30,11 @@
 
 int guacd_log_level = GUAC_LOG_INFO;
 
-void vguacd_log(guac_client_log_level level, const char* format,
-        va_list args) {
+void vguacd_log(guac_client_log_level level, const char *format,
+                va_list args)
+{
 
-    const char* priority_name;
+    const char *priority_name;
     int priority;
 
     char message[2048];
@@ -46,104 +47,111 @@ void vguacd_log(guac_client_log_level level, const char* format,
     vsnprintf(message, sizeof(message), format, args);
 
     /* Convert log level to syslog priority */
-    switch (level) {
+    switch (level)
+    {
 
-        /* Error log level */
-        case GUAC_LOG_ERROR:
-            priority = LOG_ERR;
-            priority_name = "ERROR";
-            break;
+    /* Error log level */
+    case GUAC_LOG_ERROR:
+        priority = LOG_ERR;
+        priority_name = "ERROR";
+        break;
 
-        /* Warning log level */
-        case GUAC_LOG_WARNING:
-            priority = LOG_WARNING;
-            priority_name = "WARNING";
-            break;
+    /* Warning log level */
+    case GUAC_LOG_WARNING:
+        priority = LOG_WARNING;
+        priority_name = "WARNING";
+        break;
 
-        /* Informational log level */
-        case GUAC_LOG_INFO:
-            priority = LOG_INFO;
-            priority_name = "INFO";
-            break;
+    /* Informational log level */
+    case GUAC_LOG_INFO:
+        priority = LOG_INFO;
+        priority_name = "INFO";
+        break;
 
-        /* Debug log level */
-        case GUAC_LOG_DEBUG:
-            priority = LOG_DEBUG;
-            priority_name = "DEBUG";
-            break;
+    /* Debug log level */
+    case GUAC_LOG_DEBUG:
+        priority = LOG_DEBUG;
+        priority_name = "DEBUG";
+        break;
 
-        /* Trace log level */
-        case GUAC_LOG_TRACE:
-            priority = LOG_DEBUG;
-            priority_name = "TRACE";
-            break;
+    /* Trace log level */
+    case GUAC_LOG_TRACE:
+        priority = LOG_DEBUG;
+        priority_name = "TRACE";
+        break;
 
-        /* Any unknown/undefined log level */
-        default:
-            priority = LOG_INFO;
-            priority_name = "UNKNOWN";
-            break;
+    /* Any unknown/undefined log level */
+    default:
+        priority = LOG_INFO;
+        priority_name = "UNKNOWN";
+        break;
     }
 
     /* Log to syslog */
     syslog(priority, "%s", message);
 
+#ifdef DEBUG
+    /* Log to STDOUT */
+    fprintf(stdout, GUACD_LOG_NAME "[%i]: %s:\t%s\n",
+            getpid(), priority_name, message);
+#else
     /* Log to STDERR */
     fprintf(stderr, GUACD_LOG_NAME "[%i]: %s:\t%s\n",
             getpid(), priority_name, message);
-
+#endif
 }
 
-void guacd_log(guac_client_log_level level, const char* format, ...) {
+void guacd_log(guac_client_log_level level, const char *format, ...)
+{
     va_list args;
     va_start(args, format);
     vguacd_log(level, format, args);
     va_end(args);
 }
 
-void guacd_client_log(guac_client* client, guac_client_log_level level,
-        const char* format, va_list args) {
+void guacd_client_log(guac_client *client, guac_client_log_level level,
+                      const char *format, va_list args)
+{
     vguacd_log(level, format, args);
 }
 
-void guacd_log_guac_error(guac_client_log_level level, const char* message) {
+void guacd_log_guac_error(guac_client_log_level level, const char *message)
+{
 
-    if (guac_error != GUAC_STATUS_SUCCESS) {
+    if (guac_error != GUAC_STATUS_SUCCESS)
+    {
 
         /* If error message provided, include in log */
         if (guac_error_message != NULL)
             guacd_log(level, "%s: %s",
-                    message,
-                    guac_error_message);
+                      message,
+                      guac_error_message);
 
         /* Otherwise just log with standard status string */
         else
             guacd_log(level, "%s: %s",
-                    message,
-                    guac_status_string(guac_error));
-
+                      message,
+                      guac_status_string(guac_error));
     }
 
     /* Just log message if no status code */
     else
         guacd_log(level, "%s", message);
-
 }
 
-void guacd_log_handshake_failure() {
+void guacd_log_handshake_failure()
+{
 
     if (guac_error == GUAC_STATUS_CLOSED)
         guacd_log(GUAC_LOG_INFO,
-                "Guacamole connection closed during handshake");
+                  "Guacamole connection closed during handshake");
     else if (guac_error == GUAC_STATUS_PROTOCOL_ERROR)
         guacd_log(GUAC_LOG_ERROR,
-                "Guacamole protocol violation. Perhaps the version of "
-                "guacamole-client is incompatible with this version of "
-                "guacd?");
+                  "Guacamole protocol violation. Perhaps the version of "
+                  "guacamole-client is incompatible with this version of "
+                  "guacd?");
     else
         guacd_log(GUAC_LOG_WARNING,
-                "Guacamole handshake failed: %s",
-                guac_status_string(guac_error));
-
+                  "Guacamole handshake failed: %s",
+                  guac_status_string(guac_error));
 }
-

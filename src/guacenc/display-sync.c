@@ -42,7 +42,10 @@ int guacenc_display_sync(guacenc_display* display, guac_timestamp timestamp) {
 
     /* Flatten display to default layer */
     if (guacenc_display_flatten(display))
+    {
+        
         return 1;
+    }
 
     /* Retrieve default layer (guaranteed to not be NULL) */
     guacenc_layer* def_layer = guacenc_display_get_layer(display, 0);

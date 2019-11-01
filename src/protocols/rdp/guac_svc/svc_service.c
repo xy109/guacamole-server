@@ -25,7 +25,9 @@
 #include <string.h>
 
 #include <freerdp/constants.h>
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
 #include <guacamole/client.h>
 #include <guacamole/protocol.h>
 #include <guacamole/socket.h>
@@ -37,6 +39,7 @@
 #include "compat/winpr-stream.h"
 #endif
 
+#ifndef FREERDP_2
 /**
  * Entry point for arbitrary SVC.
  */
@@ -147,4 +150,4 @@ void guac_svc_process_receive(rdpSvcPlugin* plugin,
     guac_socket_flush(svc->client->socket);
 
 }
-
+#endif

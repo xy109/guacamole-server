@@ -21,8 +21,9 @@
 #define __GUAC_RDP_RDP_SVC_H
 
 #include "config.h"
-
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
 #include <guacamole/client.h>
 #include <guacamole/stream.h>
 
@@ -42,12 +43,12 @@ typedef struct guac_rdp_svc {
      * Reference to the client owning this static channel.
      */
     guac_client* client;
-
+#ifndef FREERDP_2
     /**
      * Reference to associated SVC plugin.
      */
     rdpSvcPlugin* plugin;
-
+#endif
     /**
      * The name of the RDP channel in use, and the name to use for each pipe.
      */

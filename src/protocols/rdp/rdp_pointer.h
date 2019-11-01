@@ -53,7 +53,7 @@ typedef struct guac_rdp_pointer {
  * @param pointer
  *     The pointer to cache.
  */
-void guac_rdp_pointer_new(rdpContext* context, rdpPointer* pointer);
+BOOL guac_rdp_pointer_new(rdpContext* context, rdpPointer* pointer);
 
 /**
  * Sets the given cached pointer as the current pointer. The given pointer must
@@ -65,7 +65,7 @@ void guac_rdp_pointer_new(rdpContext* context, rdpPointer* pointer);
  * @param pointer
  *     The pointer to set as the current mouse pointer.
  */
-void guac_rdp_pointer_set(rdpContext* context, rdpPointer* pointer);
+BOOL guac_rdp_pointer_set(rdpContext* context,const rdpPointer* pointer);
 
 /**
  * Frees all Guacamole-related data associated with the given pointer, allowing
@@ -85,7 +85,7 @@ void guac_rdp_pointer_free(rdpContext* context, rdpPointer* pointer);
  * @param context
  *     The rdpContext associated with the current RDP session.
  */
-void guac_rdp_pointer_set_null(rdpContext* context);
+BOOL guac_rdp_pointer_set_null(rdpContext* context);
 
 /**
  * Sets the system-dependent (as in dependent on the client system) default
@@ -94,6 +94,6 @@ void guac_rdp_pointer_set_null(rdpContext* context);
  * @param context
  *     The rdpContext associated with the current RDP session.
  */
-void guac_rdp_pointer_set_default(rdpContext* context);
+BOOL guac_rdp_pointer_set_default(rdpContext* context);
 
 #endif

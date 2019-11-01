@@ -48,10 +48,14 @@
 #include <pthread.h>
 #include <stdint.h>
 
+#ifdef FREERDP_2
+#include <freerdp/client/cliprdr.h>
+#endif
 /**
  * RDP-specific client data.
  */
-typedef struct guac_rdp_client {
+typedef struct guac_rdp_client
+{
 
     /**
      * The RDP client thread.
@@ -61,12 +65,12 @@ typedef struct guac_rdp_client {
     /**
      * Pointer to the FreeRDP client instance handling the current connection.
      */
-    freerdp* rdp_inst;
+    freerdp *rdp_inst;
 
     /**
      * All settings associated with the current or pending RDP connection.
      */
-    guac_rdp_settings* settings;
+    guac_rdp_settings *settings;
 
     /**
      * Button mask containing the OR'd value of all currently pressed buttons.
@@ -81,23 +85,23 @@ typedef struct guac_rdp_client {
     /**
      * The display.
      */
-    guac_common_display* display;
+    guac_common_display *display;
 
     /**
      * The surface that GDI operations should draw to. RDP messages exist which
      * change this surface to allow drawing to occur off-screen.
      */
-    guac_common_surface* current_surface;
+    guac_common_surface *current_surface;
 
     /**
      * The current state of the keyboard with respect to the RDP session.
      */
-    guac_rdp_keyboard* keyboard;
+    guac_rdp_keyboard *keyboard;
 
     /**
      * The current clipboard contents.
      */
-    guac_common_clipboard* clipboard;
+    guac_common_clipboard *clipboard;
 
     /**
      * The format of the clipboard which was requested. Data received from
@@ -110,55 +114,55 @@ typedef struct guac_rdp_client {
     /**
      * Audio output, if any.
      */
-    guac_audio_stream* audio;
+    guac_audio_stream *audio;
 
     /**
      * Audio input buffer, if audio input is enabled.
      */
-    guac_rdp_audio_buffer* audio_input;
+    guac_rdp_audio_buffer *audio_input;
 
     /**
      * The filesystem being shared, if any.
      */
-    guac_rdp_fs* filesystem;
+    guac_rdp_fs *filesystem;
 
     /**
      * The currently-active print job, or NULL if no print job is active.
      */
-    guac_rdp_print_job* active_job;
+    guac_rdp_print_job *active_job;
 
 #ifdef ENABLE_COMMON_SSH
     /**
      * The user and credentials used to authenticate for SFTP.
      */
-    guac_common_ssh_user* sftp_user;
+    guac_common_ssh_user *sftp_user;
 
     /**
      * The SSH session used for SFTP.
      */
-    guac_common_ssh_session* sftp_session;
+    guac_common_ssh_session *sftp_session;
 
     /**
      * An SFTP-based filesystem.
      */
-    guac_common_ssh_sftp_filesystem* sftp_filesystem;
+    guac_common_ssh_sftp_filesystem *sftp_filesystem;
 #endif
 
     /**
      * The in-progress session recording, or NULL if no recording is in
      * progress.
      */
-    guac_common_recording* recording;
+    guac_common_recording *recording;
 
     /**
      * Display size update module.
      */
-    guac_rdp_disp* disp;
+    guac_rdp_disp *disp;
 
     /**
      * List of all available static virtual channels.
      */
-    guac_common_list* available_svc;
+    guac_common_list *available_svc;
 
     /**
      * Lock which is locked and unlocked for each RDP message, and for each
@@ -178,7 +182,8 @@ typedef struct guac_rdp_client {
  * Client data that will remain accessible through the RDP context.
  * This should generally include data commonly used by FreeRDP handlers.
  */
-typedef struct rdp_freerdp_context {
+typedef struct rdp_freerdp_context
+{
 
     /**
      * The parent context. THIS MUST BE THE FIRST ELEMENT.
@@ -189,13 +194,18 @@ typedef struct rdp_freerdp_context {
      * Pointer to the guac_client instance handling the RDP connection with
      * this context.
      */
-    guac_client* client;
-
+    guac_client *client;
+#ifndef FREERDP_2
     /**
      * Color conversion structure to be used to convert RDP images to PNGs.
      */
-    CLRCONV* clrconv;
-
+    CLRCONV *clrconv;
+#else
+    /**
+     *  粘贴板
+     */
+    CliprdrClientContext *cliprdrContext;
+#endif
     /**
      * The current color palette, as received from the RDP server.
      */
@@ -215,7 +225,6 @@ typedef struct rdp_freerdp_context {
  *     NULL in all cases. The return value of this thread is expected to be
  *     ignored.
  */
-void* guac_rdp_client_thread(void* data);
+void *guac_rdp_client_thread(void *data);
 
 #endif
-

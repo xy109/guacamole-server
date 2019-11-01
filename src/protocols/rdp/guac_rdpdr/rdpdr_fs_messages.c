@@ -28,8 +28,9 @@
 #include "rdp_fs.h"
 #include "rdp_status.h"
 #include "unicode.h"
-
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
 #include <guacamole/client.h>
 
 #ifdef ENABLE_WINPR
@@ -115,9 +116,9 @@ void guac_rdpdr_fs_process_create(guac_rdpdr_device* device,
         }
 
     }
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_read(guac_rdpdr_device* device,
@@ -163,8 +164,9 @@ void guac_rdpdr_fs_process_read(guac_rdpdr_device* device,
         Stream_Write_UINT32(output_stream, bytes_read);  /* Length */
         Stream_Write(output_stream, buffer, bytes_read); /* ReadData */
     }
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
+#endif
     free(buffer);
 
 }
@@ -206,9 +208,9 @@ void guac_rdpdr_fs_process_write(guac_rdpdr_device* device,
         Stream_Write_UINT32(output_stream, bytes_written); /* Length */
         Stream_Write_UINT8(output_stream, 0);              /* Padding */
     }
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_close(guac_rdpdr_device* device,
@@ -239,9 +241,9 @@ void guac_rdpdr_fs_process_close(guac_rdpdr_device* device,
     output_stream = guac_rdpdr_new_io_completion(device, completion_id,
             STATUS_SUCCESS, 4);
     Stream_Write(output_stream, "\0\0\0\0", 4); /* Padding */
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_volume_info(guac_rdpdr_device* device, wStream* input_stream,
@@ -327,9 +329,11 @@ void guac_rdpdr_fs_process_set_volume_info(guac_rdpdr_device* device,
     guac_client_log(device->rdpdr->client, GUAC_LOG_DEBUG,
             "%s: [file_id=%i] Set volume info not supported",
             __func__, file_id);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#else
+    printf("%d",output_stream->count);
+#endif
 }
 
 void guac_rdpdr_fs_process_set_file_info(guac_rdpdr_device* device,
@@ -390,9 +394,9 @@ void guac_rdpdr_fs_process_device_control(guac_rdpdr_device* device,
 
     /* No content for now */
     Stream_Write_UINT32(output_stream, 0);
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_notify_change_directory(guac_rdpdr_device* device,
@@ -506,9 +510,9 @@ void guac_rdpdr_fs_process_query_directory(guac_rdpdr_device* device, wStream* i
 
     Stream_Write_UINT32(output_stream, 0); /* Length */
     Stream_Write_UINT8(output_stream, 0);  /* Padding */
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 
 void guac_rdpdr_fs_process_lock_control(guac_rdpdr_device* device, wStream* input_stream,
@@ -522,8 +526,8 @@ void guac_rdpdr_fs_process_lock_control(guac_rdpdr_device* device, wStream* inpu
             __func__, file_id);
 
     Stream_Zero(output_stream, 5); /* Padding */
-
+#ifndef FREERDP_2
     svc_plugin_send((rdpSvcPlugin*) device->rdpdr, output_stream);
-
+#endif
 }
 

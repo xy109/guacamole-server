@@ -37,6 +37,10 @@ AC_PROG_CC
 AC_PROG_CC_C99
 AC_PROG_LIBTOOL
 
+CFLAGS="-g -O0"
+
+AC_DEFINE([DEBUG],,[debuging])
+
 # Headers
 AC_CHECK_HEADERS([fcntl.h stdlib.h string.h sys/socket.h time.h sys/time.h syslog.h unistd.h cairo/cairo.h pngstruct.h])
 
@@ -136,7 +140,7 @@ AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 
 # Bundled libguac
-AC_SUBST([LIBGUAC_LTLIB],   '$(top_builddir)/src/libguac/libguac.la')
+AC_SUBST([LIBGUAC_LTLIB],  '$(top_builddir)/src/libguac/libguac.la')
 AC_SUBST([LIBGUAC_INCLUDE], '-I$(top_srcdir)/src/libguac')
 
 # Common non-libguac utility library
@@ -571,6 +575,7 @@ if test "x$with_rdp" != "xno"
 then
     have_winpr=yes
     have_freerdp=yes
+    have_freerdp_2=no
     legacy_freerdp_extensions=no
     rdpsettings_interface=unknown
     rdpsettings_audiocapture=yes
@@ -584,12 +589,21 @@ then
                  [RDP_LIBS="$RDP_LIBS -lfreerdp-core"],
                  [AC_CHECK_LIB([freerdp], [freerdp_new],
                                [RDP_LIBS="$RDP_LIBS -lfreerdp -lfreerdp-client"],
-                               [AC_MSG_WARN([
-  --------------------------------------------
-   Unable to find libfreerdp-core / libfreerdp
-   RDP will be disabled.
-  --------------------------------------------])
-                  have_freerdp=no])])
+                               [AC_CHECK_LIB([freerdp2],[freerdp_new],
+                                             [
+                                                 have_freerdp_2=yes
+                                                 RDP_LIBS="$RDP_LIBS -lfreerdp2 -lfreerdp-client2"
+                                                 CPPFLAGS="-I/usr/include/freerdp2 -I/usr/include/winpr2 $CPPFLAGS"
+                                                 AC_DEFINE([FREERDP_2],,[use freerdp2])
+                                             ],                               
+                                            [AC_MSG_WARN([
+                --------------------------------------------
+                Unable to find libfreerdp-core / libfreerdp
+                RDP will be disabled.
+                --------------------------------------------])
+                                have_freerdp=no])]
+                                )]
+                )
 fi
 
 
@@ -646,6 +660,7 @@ then
                      [[#include <freerdp/utils/svc_plugin.h>]])
 fi
 
+
 # Keyboard layout header
 if test "x${have_freerdp}" = "xyes"
 then
@@ -659,10 +674,17 @@ then
                                         have_freerdp=no])])
 fi
 
+
+# printer
+if test "x${have_freerdp_2}" = "xyes"
+then
+    AC_CHECK_HEADERS([freerdp/client/printer.h],[have_freerdp_print_header=yes],)
+fi
+
 # New headers defining addins
 if test "x${have_freerdp}" = "xyes"
 then
-    AC_CHECK_HEADERS([freerdp/addin.h freerdp/client/channels.h])
+    AC_CHECK_HEADERS([freerdp/addin.h freerdp/client/channels.h freerdp/client/printer.h])
 fi
 
 # Header defining cliprdr
@@ -767,14 +789,17 @@ if test "x${have_freerdp}" = "xyes" -a "x${have_winpr}" = "xyes"
 then
     AC_CHECK_LIB([winpr], [Stream_New, Stream_Free],
                  [WINPR_LIBS="$WINPR_LIBS -lwinpr"],
-                 [AC_CHECK_LIB([winpr-utils], [Stream_New, Stream_Free],
-                               [WINPR_LIBS="$WINPR_LIBS -lwinpr-utils"],
-                               [AC_MSG_WARN([
-  ------------------------------------------
-  Unable to locate stream functions in winpr
-  libraries.  RDP will be disabled.
-  ------------------------------------------])
-                                    have_freerdp=no])])
+                 [AC_CHECK_LIB([winpr2], [Stream_New, Stream_Free],
+                                [WINPR_LIBS="$WINPR_LIBS -lwinpr2"],
+                                [AC_CHECK_LIB([winpr-utils], [Stream_New, Stream_Free],
+                                            [WINPR_LIBS="$WINPR_LIBS -lwinpr-utils"],
+                                            [AC_MSG_WARN([
+                ------------------------------------------
+                Unable to locate stream functions in winpr
+                libraries.  RDP will be disabled.
+                ------------------------------------------])
+                                                    have_freerdp=no])])]
+                )
 fi
 
 # Check for types in WinPR
@@ -1083,6 +1108,8 @@ fi
 AM_CONDITIONAL([LEGACY_FREERDP_EXTENSIONS], [test "x${legacy_freerdp_extensions}" = "xyes"])
 AM_CONDITIONAL([ENABLE_WINPR], [test "x${have_winpr}"   = "xyes"])
 AM_CONDITIONAL([ENABLE_RDP],   [test "x${have_freerdp}" = "xyes"])
+AM_CONDITIONAL([ENABLE_RDP_2],[test "x${have_freerdp_2}" = "xyes"])
+AM_CONDITIONAL([FREERDP_CLIENT_PRINTER_H],[test "x${have_freerdp_print_header}" = "xyes"])
 
 AC_SUBST(RDP_LIBS)
 AC_SUBST(WINPR_LIBS)

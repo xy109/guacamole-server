@@ -26,7 +26,9 @@
 #include <string.h>
 
 #include <freerdp/constants.h>
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
+#endif
 #include <guacamole/client.h>
 
 #ifdef ENABLE_WINPR
@@ -34,7 +36,7 @@
 #else
 #include "compat/winpr-stream.h"
 #endif
-
+#ifndef FREERDP_2
 /**
  * Entry point for RDPSND virtual channel.
  */
@@ -143,3 +145,4 @@ void guac_rdpsnd_process_receive(rdpSvcPlugin* plugin,
     Stream_Free(input_stream, TRUE);
 }
 
+#endif

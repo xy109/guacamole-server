@@ -26,7 +26,11 @@
 
 #include <freerdp/channels/channels.h>
 #include <freerdp/freerdp.h>
+#ifdef FREERDP_2
+#include <freerdp/client/rail.h>
+#else
 #include <freerdp/utils/event.h>
+#endif
 #include <guacamole/client.h>
 
 #ifdef ENABLE_WINPR
@@ -43,57 +47,59 @@
 
 #include <stddef.h>
 
-void guac_rdp_process_rail_event(guac_client* client, wMessage* event) {
+void guac_rdp_process_rail_event(guac_client *client, wMessage *event)
+{
 
 #ifdef LEGACY_EVENT
-        switch (event->event_type) {
+    switch (event->event_type)
+    {
 #else
-        switch (GetMessageType(event->id)) {
+    switch (GetMessageType(event->id))
+    {
 #endif
 
-            /* Get system parameters */
-            case RailChannel_GetSystemParam:
-                guac_rdp_process_rail_get_sysparam(client, event);
-                break;
+    /* Get system parameters */
+    case RailChannel_GetSystemParam:
+        guac_rdp_process_rail_get_sysparam(client, event);
+        break;
 
-            /* Currently ignored events */
-            case RailChannel_ServerSystemParam:
-            case RailChannel_ServerExecuteResult:
-            case RailChannel_ServerMinMaxInfo:
-            case RailChannel_ServerLocalMoveSize:
-            case RailChannel_ServerGetAppIdResponse:
-            case RailChannel_ServerLanguageBarInfo:
-                break;
+    /* Currently ignored events */
+    case RailChannel_ServerSystemParam:
+    case RailChannel_ServerExecuteResult:
+    case RailChannel_ServerMinMaxInfo:
+    case RailChannel_ServerLocalMoveSize:
+    case RailChannel_ServerGetAppIdResponse:
+    case RailChannel_ServerLanguageBarInfo:
+        break;
 
-            default:
+    default:
 #ifdef LEGACY_EVENT
-                guac_client_log(client, GUAC_LOG_INFO,
+        guac_client_log(client, GUAC_LOG_INFO,
                         "Unknown rail event type: 0x%x",
                         event->event_type);
 #else
-                guac_client_log(client, GUAC_LOG_INFO,
+        guac_client_log(client, GUAC_LOG_INFO,
                         "Unknown rail event type: 0x%x",
                         GetMessageType(event->id));
 #endif
-
-        }
-
+    }
 }
 
-void guac_rdp_process_rail_get_sysparam(guac_client* client, wMessage* event) {
-
-    wMessage* response;
-    RAIL_SYSPARAM_ORDER* sysparam;
+void guac_rdp_process_rail_get_sysparam(guac_client *client, wMessage *event)
+{
+#ifndef FREERDP_2
+    wMessage *response;
+    RAIL_SYSPARAM_ORDER *sysparam;
 
     /* Get channels */
-    guac_rdp_client* rdp_client = (guac_rdp_client*) client->data;
-    rdpChannels* channels = rdp_client->rdp_inst->context->channels;
+    guac_rdp_client *rdp_client = (guac_rdp_client *)client->data;
+    rdpChannels *channels = rdp_client->rdp_inst->context->channels;
 
     /* Get sysparam structure */
 #ifdef LEGACY_EVENT
-    sysparam = (RAIL_SYSPARAM_ORDER*) event->user_data;
+    sysparam = (RAIL_SYSPARAM_ORDER *)event->user_data;
 #else
-    sysparam = (RAIL_SYSPARAM_ORDER*) event->wParam;
+    sysparam = (RAIL_SYSPARAM_ORDER *)event->wParam;
 #endif
 
     response = freerdp_event_new(RailChannel_Class,
@@ -102,21 +108,20 @@ void guac_rdp_process_rail_get_sysparam(guac_client* client, wMessage* event) {
                                  sysparam);
 
     /* Work area */
-    sysparam->workArea.left   = 0;
-    sysparam->workArea.top    = 0;
-    sysparam->workArea.right  = rdp_client->settings->width;
+    sysparam->workArea.left = 0;
+    sysparam->workArea.top = 0;
+    sysparam->workArea.right = rdp_client->settings->width;
     sysparam->workArea.bottom = rdp_client->settings->height;
 
     /* Taskbar */
-    sysparam->taskbarPos.left   = 0;
-    sysparam->taskbarPos.top    = 0;
-    sysparam->taskbarPos.right  = 0;
+    sysparam->taskbarPos.left = 0;
+    sysparam->taskbarPos.top = 0;
+    sysparam->taskbarPos.right = 0;
     sysparam->taskbarPos.bottom = 0;
 
     sysparam->dragFullWindows = FALSE;
 
     /* Send response */
     freerdp_channels_send_event(channels, response);
-
+#endif
 }
-

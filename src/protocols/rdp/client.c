@@ -54,25 +54,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-int guac_client_init(guac_client* client, int argc, char** argv) {
+int guac_client_init(guac_client *client, int argc, char **argv)
+{
 
     /* Set client args */
     client->args = GUAC_RDP_CLIENT_ARGS;
 
     /* Alloc client data */
-    guac_rdp_client* rdp_client = calloc(1, sizeof(guac_rdp_client));
+    guac_rdp_client *rdp_client = calloc(1, sizeof(guac_rdp_client));
     client->data = rdp_client;
 
     /* Init clipboard */
     rdp_client->clipboard = guac_common_clipboard_alloc(GUAC_RDP_CLIPBOARD_MAX_LENGTH);
-
     /* Init display update module */
     rdp_client->disp = guac_rdp_disp_alloc();
-
     /* Recursive attribute for locks */
     pthread_mutexattr_init(&(rdp_client->attributes));
     pthread_mutexattr_settype(&(rdp_client->attributes),
-            PTHREAD_MUTEX_RECURSIVE);
+                              PTHREAD_MUTEX_RECURSIVE);
 
     /* Init RDP lock */
     pthread_mutex_init(&(rdp_client->rdp_lock), &(rdp_client->attributes));
@@ -86,12 +85,12 @@ int guac_client_init(guac_client* client, int argc, char** argv) {
 #endif
 
     return 0;
-
 }
 
-int guac_rdp_client_free_handler(guac_client* client) {
+int guac_rdp_client_free_handler(guac_client *client)
+{
 
-    guac_rdp_client* rdp_client = (guac_rdp_client*) client->data;
+    guac_rdp_client *rdp_client = (guac_rdp_client *)client->data;
 
     /* Wait for client thread */
     pthread_join(rdp_client->client_thread, NULL);
@@ -140,6 +139,4 @@ int guac_rdp_client_free_handler(guac_client* client) {
     free(rdp_client);
 
     return 0;
-
 }
-

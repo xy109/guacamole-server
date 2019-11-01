@@ -22,9 +22,9 @@
 
 #include "config.h"
 #include "rdp_svc.h"
-
+#ifndef FREERDP_2
 #include <freerdp/utils/svc_plugin.h>
-
+#endif
 #ifdef ENABLE_WINPR
 #include <winpr/stream.h>
 #else
@@ -36,14 +36,14 @@
  * channel.
  */
 typedef struct guac_svcPlugin {
-
+    #ifndef FREERDP_2
     /**
      * The FreeRDP parts of this plugin. This absolutely MUST be first.
      * FreeRDP depends on accessing this structure as if it were an instance
      * of rdpSvcPlugin.
      */
     rdpSvcPlugin plugin;
-
+    #endif
     /**
      * The Guacamole-specific SVC structure describing the channel this
      * instance represents.
@@ -51,7 +51,7 @@ typedef struct guac_svcPlugin {
     guac_rdp_svc* svc;
 
 } guac_svcPlugin;
-
+#ifndef FREERDP_2
 /**
  * Handler called when this plugin is loaded by FreeRDP.
  */
@@ -72,6 +72,6 @@ void guac_svc_process_terminate(rdpSvcPlugin* plugin);
  * Handler called when this plugin receives an event.
  */
 void guac_svc_process_event(rdpSvcPlugin* plugin, wMessage* event);
-
+#endif
 #endif
 
